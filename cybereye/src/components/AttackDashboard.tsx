@@ -2,8 +2,18 @@
 
 import { useEffect, useState } from 'react'
 
+type Attack = {
+  timestamp: string
+  attacker: string
+  attackerIP: string
+  attackerGeo: string
+  targetGeo: string
+  attackType: string
+  port: number
+}
+
 export default function AttackDashboard() {
-  const [liveAttacks, setLiveAttacks] = useState([])
+  const [liveAttacks, setLiveAttacks] = useState<Attack[]>([])
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080')
@@ -14,20 +24,17 @@ export default function AttackDashboard() {
         if (data.type === 'packet') {
           const now = new Date().toLocaleTimeString('en-US', { hour12: false })
 
-          const newAttack = {
+          const newAttack: Attack = {
             timestamp: now,
-            attacker: data.src.country,
+            attacker: data.src.country || 'Unknown',
             attackerIP: data.src.ip,
             attackerGeo: `${data.src.city}, ${data.src.country}`,
             targetGeo: `${data.dst.city}, ${data.dst.country}`,
-            attackType: 'unknown', // can later map to known ports if desired
-            port: Math.floor(Math.random() * 65535), // placeholder
+            attackType: 'unknown',
+            port: Math.floor(Math.random() * 65535),
           }
 
-          setLiveAttacks((prev) => {
-            const updated = [newAttack, ...prev]
-            return updated.slice(0, 50) // keep last 50
-          })
+          setLiveAttacks((prev) => [newAttack, ...prev.slice(0, 49)])
         }
       } catch (e) {
         console.error('WebSocket message parse error:', e)
@@ -43,7 +50,6 @@ export default function AttackDashboard() {
 
   return (
     <div className="w-full bg-black text-teal-300 px-4 py-3 font-mono text-sm grid grid-cols-4 gap-4 border-t border-teal-800">
-      {/* Placeholder columns */}
       <div>
         <h3 className="text-lg font-bold text-teal-500 mb-2">Attack Origins</h3>
         <div className="italic text-gray-600">Live data coming soon...</div>
@@ -59,7 +65,6 @@ export default function AttackDashboard() {
         <div className="italic text-gray-600">Live data coming soon...</div>
       </div>
 
-      {/* Live Attacks */}
       <div>
         <h3 className="text-lg font-bold text-teal-500 mb-2">Live Attacks</h3>
         <div className="overflow-y-auto max-h-64 pr-1">

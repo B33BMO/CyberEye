@@ -59,7 +59,7 @@ export default function WorldMap() {
       tracerGroup.attr('transform', event.transform)
     })
 
-
+    svg.call(zoom)
 
 
     // WebSocket connection to local backend

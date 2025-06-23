@@ -1,4 +1,5 @@
 'use client'
+
 import type { FeatureCollection, Geometry } from 'geojson'
 import * as d3 from 'd3'
 import { useEffect, useRef } from 'react'
@@ -22,11 +23,9 @@ export default function WorldMap() {
   const ref = useRef<SVGSVGElement | null>(null)
 
   useEffect(() => {
-    if (!ref.current) return // Don't run if the ref isn't ready
-  
-    const svg: d3.Selection<SVGSVGElement, unknown, null, undefined> = d3.select(ref.current)
-  
+    if (!ref.current) return
 
+    const svg: d3.Selection<SVGSVGElement, unknown, null, undefined> = d3.select(ref.current)
     svg.selectAll('*').remove()
 
     const width = 1000
@@ -38,11 +37,10 @@ export default function WorldMap() {
     const g = svg.append('g') // Base map
     const tracerGroup = svg.append('g') // Tracer lines
 
-    // Load map
+    // Load world map
     d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson')
       .then((data) => {
         const geoData = data as FeatureCollection<Geometry>
-
         g.selectAll('path')
           .data(geoData.features)
           .enter()
@@ -52,18 +50,19 @@ export default function WorldMap() {
           .attr('stroke', '#0ff')
           .attr('stroke-width', 0.3)
       })
+      .catch((err) => console.error('Error loading map:', err))
 
-    // Zoom behavior
-    const zoom = d3.zoom().scaleExtent([0.5, 8]).on('zoom', (event) => {
-      g.attr('transform', event.transform)
-      tracerGroup.attr('transform', event.transform)
-    })
+    // Zoom behavior (typed and declared *before* use)
+    const zoom: d3.ZoomBehavior<Element, unknown> = d3.zoom<Element, unknown>()
+      .scaleExtent([0.5, 8])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform)
+        tracerGroup.attr('transform', event.transform)
+      })
 
-    (svg as unknown as d3.Selection<Element, unknown, null, undefined>).call(zoom)
+    svg.call(zoom as unknown as (selection: d3.Selection<SVGSVGElement, unknown, null, undefined>) => void)
 
-
-
-    // WebSocket connection to local backend
+    // WebSocket connection
     const socket = new WebSocket('ws://localhost:8080')
 
     socket.onmessage = (event) => {
@@ -73,7 +72,6 @@ export default function WorldMap() {
 
         const srcCoord = projection([data.src.lon, data.src.lat])
         const dstCoord = projection([data.dst.lon, data.dst.lat])
-
         if (!srcCoord || !dstCoord) return
 
         const line = tracerGroup

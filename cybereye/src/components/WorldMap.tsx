@@ -59,7 +59,8 @@ export default function WorldMap() {
       tracerGroup.attr('transform', event.transform)
     })
 
-    svg.call(zoom)
+    (svg as unknown as d3.Selection<Element, unknown, null, undefined>).call(zoom)
+
 
 
     // WebSocket connection to local backend

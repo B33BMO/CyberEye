@@ -1,5 +1,5 @@
 'use client'
-
+import type { FeatureCollection, Geometry } from 'geojson'
 import * as d3 from 'd3'
 import { useEffect, useRef } from 'react'
 
@@ -36,7 +36,7 @@ export default function WorldMap() {
 
     // Load map
     d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson')
-      .then((data: any) => {
+    .then((data: FeatureCollection<Geometry>) => {
         g.selectAll('path')
           .data(data.features)
           .enter()
